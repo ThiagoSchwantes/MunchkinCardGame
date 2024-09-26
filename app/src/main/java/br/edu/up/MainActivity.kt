@@ -1,7 +1,6 @@
 package br.edu.up
 
 import android.os.Bundle
-import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,11 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,11 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.edu.up.ui.theme.MunchkinCardGameTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,21 +45,22 @@ fun previsualizar(){
     LayoutMain()
 }
 
+fun initJogadores(quantJogadores: Int):List<Jogador>{
+    var jogadores = listOf<Jogador>();
+
+    for (i in 1..quantJogadores){
+        jogadores += Jogador("");
+    }
+    return jogadores;
+}
+
 @Composable
 fun LayoutMain(){
-    var jogadores = remember { mutableStateListOf(
-        Jogador("Jogador 1"),
-        Jogador("Jogador 2"),
-        Jogador("Jogador 3"),
-        Jogador("Jogador 4"),
-        Jogador("Jogador 5"),
-        Jogador("Jogador 6")
-    )}
+    //tive que pesquisar como usar o mutableStateListOf pq enfrentei diversos problemas, mas no fim deu certo
+    var jogadores = remember {mutableStateListOf<Jogador>()}
+    jogadores += initJogadores(6);
 
     var atual by remember { mutableStateOf(0) }
-
-    val context = LocalContext.current;
-
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -80,6 +76,7 @@ fun LayoutMain(){
                     else -> atual--
                 }
             }) {
+                //frescura minha q pesquisei como fazer
                 Image(
                     painter = painterResource(id = R.drawable.esquerda),
                     contentDescription = "trocar jogador - seta para esquerda",
@@ -88,7 +85,16 @@ fun LayoutMain(){
             }
             Spacer(modifier = Modifier.weight(1f));
 
-            TextField(value = jogadores[atual].nome, onValueChange = {jogadores[atual].nome = it}, label={Text(text = "Nome do Jogador ${atual+1}")})
+            TextField(
+                value = jogadores[atual].nome,
+                onValueChange = {
+                    //quando se usa variavel = it não funciona nessa ocasião
+                    // Solução: copiar a variavel atual alterando o atributo em especifico e salvando na variavel atual
+                    novoNome -> jogadores[atual] = jogadores[atual].copy(nome = novoNome)
+                },
+                label={Text(text = "Nome do Jogador ${atual+1}")},
+                placeholder = { Text("Jogador ${atual+1}") }
+            )
 
             Spacer(modifier = Modifier.weight(1f));
 
@@ -127,7 +133,8 @@ fun LayoutMain(){
             modifier = Modifier.width(250.dp)
         ) {
             Button(onClick = {
-                jogadores[atual].diminuirAtributo("level", context)
+                //mesma coisa que a alteração do nome, mas dessa vez com um metodo que faz um limite minimo
+                jogadores[atual] = jogadores[atual].copy(level = (jogadores[atual].level - 1).coerceAtLeast(1))
             }) {
                 Text("-")
             }
@@ -140,7 +147,8 @@ fun LayoutMain(){
             Spacer(modifier = Modifier.weight(1f));
 
             Button(onClick = {
-                jogadores[atual].aumentarAtributo("level", context)
+                // memsma coisa que o de cima, mas com um metodo de limite máximo
+                jogadores[atual] = jogadores[atual].copy(level = (jogadores[atual].level + 1).coerceAtMost(10))
             }) {
                 Text("+")
             }
@@ -152,7 +160,7 @@ fun LayoutMain(){
             modifier = Modifier.width(250.dp)
         ) {
             Button(onClick = {
-                jogadores[atual].diminuirAtributo("equipamento", context)
+                jogadores[atual] = jogadores[atual].copy(bonusEquipamento = (jogadores[atual].bonusEquipamento - 1).coerceAtLeast(0))
             }) {
                 Text("-")
             }
@@ -164,7 +172,7 @@ fun LayoutMain(){
             Spacer(modifier = Modifier.weight(1f));
 
             Button(onClick = {
-                jogadores[atual].aumentarAtributo("equipamento", context)
+                jogadores[atual] = jogadores[atual].copy(bonusEquipamento = (jogadores[atual].bonusEquipamento + 1).coerceAtMost(40))
             }) {
                 Text("+")
             }
@@ -176,7 +184,7 @@ fun LayoutMain(){
             modifier = Modifier.width(250.dp)
         ) {
             Button(onClick = {
-                jogadores[atual].diminuirAtributo("modificadores", context)
+                jogadores[atual] = jogadores[atual].copy(modificadores = (jogadores[atual].modificadores - 1).coerceAtLeast(-5))
             }) {
                 Text("-")
             }
@@ -188,7 +196,7 @@ fun LayoutMain(){
             Spacer(modifier = Modifier.weight(1f));
 
             Button(onClick = {
-                jogadores[atual].aumentarAtributo("modificadores", context)
+                jogadores[atual] = jogadores[atual].copy(modificadores = (jogadores[atual].modificadores + 1).coerceAtMost(10))
             }) {
                 Text("+")
             }
